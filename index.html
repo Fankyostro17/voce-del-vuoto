@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#0b0908">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<title>Voce del Vuoto</title>
+<style>
+  :root {
+    --bg: #0b0908; --panel: #15110f; --line: #2a2018; --bone: #d9cbb0; --dim: #8a7b66;
+    --ember: #c4622d; --ember-d: #7a3a1a; --red: #b3261e;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; background: var(--bg); color: var(--bone); font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  body { padding: 14px 14px calc(96px + env(safe-area-inset-bottom)); max-width: 640px; margin: 0 auto; }
+  header { padding: 8px 2px 14px; border-bottom: 1px solid var(--line); margin-bottom: 14px; }
+  h1 { margin: 0; font-family: Georgia, "Times New Roman", serif; font-weight: 400; letter-spacing: .14em; text-transform: uppercase; font-size: 1.5rem; }
+  .sub { margin: 4px 0 0; color: var(--dim); font-size: .85rem; }
+  h2 { font-size: .75rem; letter-spacing: .18em; text-transform: uppercase; color: var(--dim); margin: 20px 0 8px; font-weight: 600; }
+  section { margin-bottom: 4px; }
+  button { font: inherit; color: inherit; cursor: pointer; }
+  #startBtn { width: 100%; padding: 22px; font-size: 1.2rem; letter-spacing: .08em; background: var(--ember-d); border: 1px solid var(--ember); border-radius: 12px; }
+  #startBtn:disabled { opacity: .6; }
+  .warn { background: #1d1410; border-left: 3px solid var(--ember); padding: 10px 12px; font-size: .88rem; line-height: 1.45; border-radius: 4px; margin: 14px 0; }
+  #err { background: #2a0f0d; border-left: 3px solid var(--red); padding: 10px 12px; border-radius: 4px; margin-top: 10px; font-size: .9rem; }
+
+  .meters { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+  .meter { display: grid; grid-template-columns: 38px 1fr; align-items: center; gap: 8px; font-size: .75rem; color: var(--dim); margin: 4px 0; }
+  .bar { height: 8px; background: #0b0908; border-radius: 4px; overflow: hidden; }
+  .bar > i { display: block; height: 100%; width: 0; background: var(--bone); transition: width 60ms linear; }
+  .bar > i.hot { background: var(--red); }
+  #lat { font-size: .75rem; color: var(--dim); margin-top: 6px; }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { padding: 12px 16px; background: var(--panel); border: 1px solid var(--line); border-radius: 999px; font-size: .95rem; }
+  .chip.on { background: var(--ember-d); border-color: var(--ember); }
+
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  #slots { grid-template-columns: repeat(2, 1fr); }
+  .pad { min-height: 78px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; font-size: 1.05rem; padding: 10px 8px; width: 100%; }
+  .pad:active { background: var(--ember-d); }
+  .pad.toggle.on { background: var(--ember-d); border-color: var(--ember); box-shadow: inset 0 0 14px rgba(196,98,45,.35); }
+  .slot { position: relative; }
+  .slotbtn small { display: block; margin-top: 4px; font-size: .68rem; color: var(--dim); }
+  .slotbtn.rec { background: #3a0f0c; border-color: var(--red); }
+  .mini { position: absolute; top: 4px; right: 4px; width: 32px; height: 32px; border-radius: 8px; background: transparent; border: 1px solid var(--line); color: var(--dim); }
+
+  details { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 4px 12px; margin-top: 10px; }
+  summary { padding: 10px 0; cursor: pointer; font-size: .9rem; }
+  .row { display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; padding: 8px 0; font-size: .85rem; }
+  .row .rl { color: var(--bone); }
+  .row output { color: var(--ember); font-variant-numeric: tabular-nums; }
+  .row input { grid-column: 1 / -1; width: 100%; accent-color: var(--ember); height: 28px; }
+  select { width: 100%; padding: 10px; background: var(--bg); color: var(--bone); border: 1px solid var(--line); border-radius: 8px; margin: 4px 0 10px; font: inherit; }
+  .hint { color: var(--dim); font-size: .8rem; line-height: 1.4; margin: 8px 0 0; }
+
+  #muteBtn { position: fixed; left: 14px; right: 14px; bottom: calc(14px + env(safe-area-inset-bottom)); max-width: 612px; margin: 0 auto; padding: 20px; font-size: 1.1rem; letter-spacing: .06em; background: #1d2a1c; border: 1px solid #3d6b3a; border-radius: 14px; z-index: 5; }
+  #muteBtn.muted { background: #3a0f0c; border-color: var(--red); }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Voce del Vuoto</h1>
+  <p class="sub">voce modificata in tempo reale · mic → pitch → eco/riverbero → uscita</p>
+</header>
+
+<section id="startBox">
+  <button id="startBtn">▶ Avvia audio</button>
+  <div class="warn"><b>Per i test usa le cuffie.</b> Con lo speaker del telefono acceso e il microfono vicino parte il fischio (feedback). Con la scheda audio USB e lo speaker sul petto regola il volume e il noise gate fino a quando il fischio sparisce.</div>
+  <div id="err" hidden></div>
+</section>
+
+<div id="app" hidden>
+  <section class="meters">
+    <div class="meter"><span>IN</span><div class="bar"><i id="mIn"></i></div></div>
+    <div class="meter"><span>OUT</span><div class="bar"><i id="mOut"></i></div></div>
+    <div id="lat"></div>
+  </section>
+
+  <section>
+    <h2>Voce</h2>
+    <div id="presets" class="chips"></div>
+  </section>
+
+  <section>
+    <h2>Soundboard</h2>
+    <div id="sfx" class="grid"></div>
+  </section>
+
+  <section>
+    <h2>Frasi registrate</h2>
+    <div id="slots" class="grid"></div>
+    <p class="hint">Registra una frase con la tua voce normale: in riproduzione passa dagli effetti. Le frasi si perdono se chiudi la pagina.</p>
+  </section>
+
+  <details>
+    <summary>Regolazioni</summary>
+    <div id="sliders"></div>
+  </details>
+
+  <details>
+    <summary>Dispositivi audio (scheda USB)</summary>
+    <label>Ingresso (microfono)<select id="inSel"></select></label>
+    <label id="outWrap">Uscita (speaker)<select id="outSel"></select></label>
+    <p class="hint">Con la scheda USB collegata scegli qui ingresso e uscita. Se l'uscita non è selezionabile, Android usa quella predefinita.</p>
+  </details>
+</div>
+
+<button id="muteBtn" hidden>🎙 MICROFONO ATTIVO</button>
+
+<script src="app.js"></script>
+</body>
+</html>
